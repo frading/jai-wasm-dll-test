@@ -24,3 +24,5 @@ If the dll can be compiled and linked natively, we can now try for wasm:
 This currently gives this error:
 
 `lld-linux: error: duplicate symbol: __procedure_1b00000001`
+
+It is worth noting that if the DLL **for native** is built with `.STATIC_LIBRARY` instead of `.DYNAMIC_LIBRARY`, and linked with `Custom_DLL :: #library,no_dll "native/custom_dll";`, we get the same error. This may mean that something is incorrect in this setup.
