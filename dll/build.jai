@@ -1,5 +1,3 @@
-// native:
-// rm -f ../main_program/modules/dll/native/* && jai build.jai
 
 #run {
     set_build_options_dc(.{do_output=false});  // No executable for this workspace.
@@ -70,73 +68,10 @@ build_lib :: () {
     set_build_options(options, w);
 
 
-    // compiler_begin_intercept(w);
-
     add_build_file("main_dll.jai", w);
 
-    // while true {
-    //     message := compiler_wait_for_message();
-    //     if message.kind == .COMPLETE {
-    //         mc := cast(*Message_Complete) message;
-    //         if mc.error_code != .NONE {
-    //             print("DLL compilation failed; exiting without compiling the main program.\n");
-    //             return;
-    //         }
-
-    //         break;
-    //     } else if message.kind == .TYPECHECKED {
-
-    //         tc_message := cast(*Message_Typechecked) message;
-    //         print_program_exports(tc_message);
-
-    //     }
-    // }
-
-    // compiler_end_intercept(w);
 }
 
-// print_program_exports :: (tc_message:*Message_Typechecked) {
-//     builder:String_Builder;
-    
-//     // for procedure_header: tc_message.procedure_headers {
-//     //     print_procedure_header(*builder, procedure_header.expression);
-//     // }
-//     for tc: tc_message.all {
-//         for subexpression: tc.subexpressions {
-//             if subexpression.kind == .DECLARATION {
-//                 sub_decl := cast(*Code_Declaration) subexpression;
-//                 if sub_decl.flags & .PROGRAM_EXPORT {
-//                     // print(" - %,%,%,%\n", sub_decl.kind, sub_decl.program_export_name);
-//                     sub_builder:String_Builder;
-//                     print_declaration(*sub_builder, sub_decl);
-//                     result := builder_to_string(*sub_builder);
-//                     lines := split(result, "\n");
-//                     main_line := lines[1];
-//                     if main_line[0] != #char "_" {
-//                         function_decl := replace(main_line, "{", " #elsewhere Polygon_Runtime;\n");
-//                         print_to_builder(*builder, function_decl);
-//                         // print("lines:%\n", function_decl);
-//                     }
-//                     // print_expression(*builder, sub_decl.expression);
-//                 }
-//             }
-//         }
-//     }
-
-//     // filename := ""
-//     // file, success := file_open(filename, true, false, true);
-//     // if !success {
-//     //     log_error("In Simple_Package, unable to open '%' for writing!\n", filename);
-//     //     return false;
-//     // }
-
-//     // defer file_close(*file);
-
-//     // success = file_write(*file, *header);
-
-//     result := builder_to_string(*builder);
-//     print("%\n", result);
-// }
 
 
 #import "Basic";
