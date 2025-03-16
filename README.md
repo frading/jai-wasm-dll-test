@@ -25,4 +25,18 @@ This currently gives this error:
 
 `lld-linux: error: duplicate symbol: __procedure_1b00000001`
 
+## methods used:
+
+- `options.output_type = .DYNAMIC_LIBRARY;`
+
+This generates a custom_dll.wasm, and when linking we get `lld-linux: error: cannot open modules/Custom_DLL/wasm/custom_dll.o`.
+
+- `options.output_type = .STATIC_LIBRARY;`
+
+Building the dll requires removal of `--stack-first` option. We also get a custom_dll.wasm file, with the same error `lld-linux: error: cannot open modules/Custom_DLL/wasm/custom_dll.o`.
+
+- `options.output_type = .OBJECT_FILE;`
+
+## similar error in native with .STATIC_LIBRARY:
+
 It is worth noting that if the DLL **for native** is built with `.STATIC_LIBRARY` instead of `.DYNAMIC_LIBRARY`, and linked with `Custom_DLL :: #library,no_dll "native/custom_dll";`, we get the same error. This may mean that something is incorrect in this setup.

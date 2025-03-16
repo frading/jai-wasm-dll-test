@@ -17,7 +17,9 @@ build_lib :: () {
     if wasm {
         print("BUILDING FOR WASM\n");
         options.output_path = "../main_program/modules/Custom_DLL/wasm";
-        options.output_type            = .OBJECT_FILE;
+        // options.output_type = .DYNAMIC_LIBRARY;
+        // options.output_type = .STATIC_LIBRARY;
+        options.output_type = .OBJECT_FILE;
 
         //
         options.backend                             = .LLVM;
@@ -40,7 +42,7 @@ build_lib :: () {
         // This was compiled from https://github.com/wingo/walloc via "clang -Oz --target=wasm64 -nostdlib -c -o walloc.o walloc.c".
         // We should probably port this allocator to Jai instead…
         //  -rluba, 2023-11-15
-        walloc_object_file_path := "modules/walloc/walloc.o";
+        walloc_object_file_path := "modules/Walloc/walloc.o";
 
         STACK_SIZE :: 24 * 1024;
         options.additional_linker_arguments = .[
@@ -60,6 +62,7 @@ build_lib :: () {
     }
 
     make_directory_if_it_does_not_exist(options.output_path);
+    print("file generated in folder: %.\n", options.output_path);
     options.output_executable_name = "custom_dll";
     set_optimization(*options, .OPTIMIZED);
     options.runtime_support_definitions = .OMIT;
