@@ -26,6 +26,7 @@ BUILD_WASM::true;
         options.llvm_options.enable_split_modules   = false;
         options.llvm_options.function_sections      = true; // To get around "LLVM ERROR: section already has a defining function: .text"
 
+        // options.lazy_foreign_function_lookups = false;
         // options.use_custom_link_command = true;
 
         import_paths: [..]string;
@@ -38,7 +39,7 @@ BUILD_WASM::true;
         // We should probably port this allocator to Jai instead…
         //  -rluba, 2023-11-15
         walloc_object_file_path := "modules/Walloc/walloc.o";
-        custom_dll_object_file_path := "modules/Custom_DLL/wasm/custom_dll.o";
+        // custom_dll_object_file_path := "modules/Custom_DLL/wasm/custom_dll.o";
 
         STACK_SIZE :: 24 * 1024;
         options.additional_linker_arguments = .[
@@ -46,7 +47,7 @@ BUILD_WASM::true;
             "-z",
             tprint("stack-size=%", STACK_SIZE),
             walloc_object_file_path,
-            custom_dll_object_file_path
+            // custom_dll_object_file_path
         ];
 
         // Replace the default allocator with Walloc (https://github.com/wingo/walloc).
