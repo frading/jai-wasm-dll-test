@@ -3,9 +3,9 @@
 // compute_num :: () -> u32 #elsewhere Custom_DLL;
 
 // -2. with DLL built with .STATIC_LIBRARY:
+compute_num :: () -> u32 #elsewhere Custom_DLL;
+#scope_file
 Custom_DLL :: #library "wasm/custom_dll";
-compute_num :: () -> u32 #foreign Custom_DLL;// "compute_num_f00000292";
-
 
 
 // -3. with DLL built with .OBJECT_FILE:

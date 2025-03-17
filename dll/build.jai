@@ -8,22 +8,23 @@
     args := options.compile_time_command_line;
 	wasm := array_find(args, "wasm");
     if(wasm) {
-        build_lib(wasm=true, dynamic=true);
-        build_lib(wasm=true, dynamic=false);
+        build_lib(wasm=true, output_type=.DYNAMIC_LIBRARY);
+        build_lib(wasm=true, output_type=.STATIC_LIBRARY);
+        build_lib(wasm=true, output_type=.OBJECT_FILE);
     } else {
-        build_lib(wasm=false, dynamic=true);
-        build_lib(wasm=false, dynamic=false);
+        build_lib(wasm=false, output_type=.DYNAMIC_LIBRARY);
+        build_lib(wasm=false, output_type=.STATIC_LIBRARY);
     }
 }
 
-build_lib :: (wasm:bool, dynamic:bool) {
-    w := compiler_create_workspace();
+build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
+    w := compiler_create_workspace(tprint("%", output_type));
     options := get_build_options(w);
 
     copy_commonly_propagated_fields(get_build_options(), *options);
 
     if wasm {
-        print("BUILDING FOR WASM (%)\n", ifx dynamic then "dynamic" else "static");
+        print("BUILDING FOR WASM (%)\n", output_type);
         options.output_path = "../main_program/modules/Custom_DLL/wasm";
         // options.output_type = .DYNAMIC_LIBRARY;
         // options.output_type = .STATIC_LIBRARY;
@@ -52,36 +53,51 @@ build_lib :: (wasm:bool, dynamic:bool) {
         //  -rluba, 2023-11-15
         walloc_object_file_path := "modules/Walloc/walloc.o";
 
-        if dynamic {
-            // STACK_SIZE :: 24 * 1024;
-            options.additional_linker_arguments = .[
-                // "--stack-first",
-                // "-z",
-                // tprint("stack-size=%", STACK_SIZE),
-                walloc_object_file_path
-            ];
-        } else {
-            options.additional_linker_arguments = .[
-                // "--stack-first",
-                // "-z",
-                // tprint("stack-size=%", STACK_SIZE),
-                walloc_object_file_path
-            ];
+        if output_type == {
+            case .DYNAMIC_LIBRARY; {
+                // STACK_SIZE :: 24 * 1024;
+                options.additional_linker_arguments = .[
+                    // "--stack-first",
+                    // "-z",
+                    // tprint("stack-size=%", STACK_SIZE),
+                    walloc_object_file_path
+                ];
+            }
+            case .STATIC_LIBRARY; {
+                options.additional_linker_arguments = .[
+                    // "--stack-first",
+                    // "-z",
+                    // tprint("stack-size=%", STACK_SIZE),
+                    walloc_object_file_path
+                ];
+            }
+            case .OBJECT_FILE; {
+                //
+            }
         }
 
 
         // Replace the default allocator with Walloc (https://github.com/wingo/walloc).
         remap_import(w, "*", "Default_Allocator", "Walloc");
     } else {
-        print("BUILDING FOR NATIVE\n");
+        print("BUILDING FOR NATIVE (%)\n", output_type);
         options.output_path = "../main_program/modules/Custom_DLL/native";
     }
-    if dynamic {
-        options.output_type = .DYNAMIC_LIBRARY;
-    } else {
-        options.output_type = .STATIC_LIBRARY;
-        options.runtime_support_definitions = .OMIT;
-        options.dead_code_elimination = .ALL;
+
+
+    options.output_type = output_type;
+    if output_type == {
+        case .DYNAMIC_LIBRARY; {
+            //
+        }
+        case .STATIC_LIBRARY; {
+            options.runtime_support_definitions = .OMIT;
+            options.dead_code_elimination = .ALL;
+        }
+        case .OBJECT_FILE; {
+            options.runtime_support_definitions = .OMIT;
+            options.dead_code_elimination = .ALL;
+        }
     }
 
     make_directory_if_it_does_not_exist(options.output_path);
@@ -110,9 +126,14 @@ build_lib :: (wasm:bool, dynamic:bool) {
     }
     compiler_end_intercept(w);
 
-    if wasm {
+    if wasm && (output_type==.DYNAMIC_LIBRARY || output_type==.STATIC_LIBRARY) {
         src := tprint("%/%.wasm", options.output_path,  options.output_executable_name);
-        ext :string= ifx dynamic then "so" else "a";
+        ext :string= "no-ext";
+        if output_type == {
+            case .DYNAMIC_LIBRARY; { ext = "so"; }
+            case .STATIC_LIBRARY; { ext = "a"; }
+            // case .OBJECT_FILE; { ext = "o"; }
+        }
         dest := tprint("%/%.%", options.output_path,  options.output_executable_name, ext);
         cmd_mv := tprint("mv % %", src, dest);
 	    print("%\n", cmd_mv);
