@@ -2,3 +2,6 @@ main_program/modules/Custom_DLL/native/
 main_program/modules/Custom_DLL/wasm/
 
 .build
+
+main_program/public/*.wasm
+main_program/main_native
