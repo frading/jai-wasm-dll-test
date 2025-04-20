@@ -6,14 +6,19 @@
     options := get_build_options(w);
 
     args := options.compile_time_command_line;
-	wasm := array_find(args, "wasm");
+    // bindings := array_find(args, "bindings");
+	// if bindings {
+    //     generate_bindings_from_jai_dll();
+    //     return;
+    // }
+    wasm := array_find(args, "wasm");
     if(wasm) {
         build_lib(wasm=true, output_type=.DYNAMIC_LIBRARY);
         build_lib(wasm=true, output_type=.STATIC_LIBRARY);
         build_lib(wasm=true, output_type=.OBJECT_FILE);
     } else {
         build_lib(wasm=false, output_type=.DYNAMIC_LIBRARY);
-        build_lib(wasm=false, output_type=.STATIC_LIBRARY);
+        // build_lib(wasm=false, output_type=.STATIC_LIBRARY);
     }
 }
 
@@ -112,19 +117,66 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
     add_build_file("main_dll.jai", w);
 
     // ensure we compile 1 target at a time
+    // typechecked:bool=false;
+    header_info: BindingsExportInfo;
+    // header_info.prefix_enum_values = true;
+    // mt:*Message_Typechecked;
+    success:=true;
     while true {
         message := compiler_wait_for_message();
-        if message.kind == .COMPLETE {
-            mc := cast(*Message_Complete) message;
-            if mc.error_code != .NONE {
-                print("DLL compilation failed; exiting without compiling the main program.\n");
-                return;
-            }
 
-            break;
+        assert(message.workspace == w);
+
+        if message.kind == {
+            case .COMPLETE; {
+
+                mc := cast(*Message_Complete) message;
+                if mc.error_code != .NONE {
+                    success = false;
+                    print("DLL compilation failed; exiting without compiling the main program.\n");
+                    return;
+                }
+
+                break;
+
+            }
+            case .PHASE; {
+                mp := cast(*Message_Phase) message;
+                // print("*** PHASE (%)\n", mp.phase);
+                if mp.phase == .TYPECHECKED_ALL_WE_CAN {
+                    print("*** TYPECHECKED_ALL_WE_CAN\n");
+                    // typechecked = true;
+                    // print("mt:%\n", mt);
+                    // if mt != null {
+                    //     print("*** TYPECHECKED (% strucs)\n", mt.structs.count);
+                    //     printDeclarations(mt);
+                    // } else {
+                    //     print("mt is null\n");
+                    // }
+                }
+            }
+            case .TYPECHECKED; {
+                bindingsExportHandleMessage(*header_info, message);
+            //     // print("*** TYPECHECKED\n");
+            //     // if typechecked {
+            //         mt = cast(*Message_Typechecked) message;
+            //         // print("mt:%, %\n", mt, mt.structs.count);
+            //         // if mt.phase == .TYPECHECKED_ALL_WE_CAN {
+            //             // print("*** TYPECHECKED (% strucs)\n", mt.structs.count);
+                        // printDeclarations(mt);
+            //         // }
+            //     // }
+
+            }
         }
     }
     compiler_end_intercept(w);
+
+    success = bindingsExportWriteFile(*header_info, tprint("%/../main_program/modules/Custom_DLL/native2.jai", #filepath));
+    if !success {
+        compiler_report("Couldn’t generate C header file");
+        return;
+    }
 
     if wasm && (output_type==.DYNAMIC_LIBRARY || output_type==.STATIC_LIBRARY) {
         src := tprint("%/%.wasm", options.output_path,  options.output_executable_name);
@@ -155,3 +207,10 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
 #import "Process";
 #import "Program_Print";
 #import "String";
+// #import "Bindings_Generator";
+#import "Hash_Table";
+// Generate :: #import "generate_c_header";
+
+// #load "dll_traverse.jai";
+#load "build/types_print_from_type_info.jai";
+// #load "dll_bindings.jai";

@@ -2,7 +2,8 @@
 
 main :: () {
     print("main started\n");
-    print("compute:%\n", compute_num());
+    setNode(0, .{id=0, value=1.0});
+    print("compute:%\n", computeSum());
     print("OK\n");
 }
 
