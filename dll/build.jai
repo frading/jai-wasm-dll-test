@@ -118,7 +118,7 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
 
     // ensure we compile 1 target at a time
     // typechecked:bool=false;
-    header_info: BindingsExportInfo;
+    bindingsInfo: BindingsExportInfo;
     // header_info.prefix_enum_values = true;
     // mt:*Message_Typechecked;
     success:=true;
@@ -144,7 +144,7 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
                 mp := cast(*Message_Phase) message;
                 // print("*** PHASE (%)\n", mp.phase);
                 if mp.phase == .TYPECHECKED_ALL_WE_CAN {
-                    print("*** TYPECHECKED_ALL_WE_CAN\n");
+                    // print("*** TYPECHECKED_ALL_WE_CAN\n");
                     // typechecked = true;
                     // print("mt:%\n", mt);
                     // if mt != null {
@@ -156,7 +156,8 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
                 }
             }
             case .TYPECHECKED; {
-                bindingsExportHandleMessage(*header_info, message);
+                mt := cast(*Message_Typechecked) message;
+                bindingsExportHandleMessage(*bindingsInfo, mt);
             //     // print("*** TYPECHECKED\n");
             //     // if typechecked {
             //         mt = cast(*Message_Typechecked) message;
@@ -172,7 +173,7 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
     }
     compiler_end_intercept(w);
 
-    success = bindingsExportWriteFile(*header_info, tprint("%/../main_program/modules/Custom_DLL/native2.jai", #filepath));
+    success = bindingsExportWriteFile(*bindingsInfo, tprint("%/../main_program/modules/Custom_DLL/native2.jai", #filepath));
     if !success {
         compiler_report("Couldn’t generate C header file");
         return;
@@ -207,10 +208,8 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
 #import "Process";
 #import "Program_Print";
 #import "String";
-// #import "Bindings_Generator";
 #import "Hash_Table";
-// Generate :: #import "generate_c_header";
 
-// #load "dll_traverse.jai";
-#load "build/types_print_from_type_info.jai";
-// #load "dll_bindings.jai";
+#load "build/Print.jai";
+// #load "build/TypesPrintFromTypeInfo/_index.jai";
+#load "build/TypesPrintFromLocation/_index.jai";

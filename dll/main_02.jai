@@ -1,3 +1,9 @@
+
+#program_export
+compute :: (node: MyNode)->u8 {
+    return 0;//node.id;
+}
+
 ExternalStruct :: struct {
     a:u8;
 }
@@ -17,13 +23,10 @@ MyNode :: struct {
     // name:string;
 
     // external: ExternalStruct;
-    InternalStruct :: struct {
-        a:u8;
-    }
-    internal: InternalStruct;
-}
-
-#program_export
-compute :: (node: MyNode)->u8 {
-    return 0;//node.id;
+    // constant types
+    idType :: u8;
+    // InternalStruct :: struct {
+    //     a:u8;
+    // }
+    // internal: InternalStruct;
 }
