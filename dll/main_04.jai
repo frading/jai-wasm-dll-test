@@ -1,7 +1,11 @@
 BaseNode :: struct {
     id : u32;
     value: float64;
+    driversCount:DRIVERS_COUNT;
+    count:DRIVERS_COUNT = INIT_DRIVERS_COUNT;
 }
+DRIVERS_COUNT :Type:#type u8;
+INIT_DRIVERS_COUNT :DRIVERS_COUNT: 17;
 
 #program_export
 setNode :: (index:u8, node:BaseNode) {

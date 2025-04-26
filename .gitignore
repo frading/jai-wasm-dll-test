@@ -5,3 +5,9 @@ main_program/modules/Custom_DLL/wasm/
 
 main_program/public/*.wasm
 main_program/main_native
+
+dll/modules/SDL/linux_build
+dll/modules/SDL/linux/bin
+dll/modules/SDL/linux/include
+dll/modules/SDL/linux/lib
+dll/modules/SDL/linux/share

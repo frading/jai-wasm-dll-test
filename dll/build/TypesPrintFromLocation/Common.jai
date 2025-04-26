@@ -1,6 +1,7 @@
 BindingsExportInfo :: struct {
    exportedProcedures:  [..] *Typechecked(Code_Declaration);
    foundStructs: Table(string, *Typechecked(Code_Struct));
+   foundTypes: Table(string, *Typechecked(Code_Declaration));
 }
 
 // same as Location inside Compiler.jai

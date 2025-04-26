@@ -1,4 +1,4 @@
-
+FILE_NAME::"main_04.jai";
 
 bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Message_Typechecked){
 
@@ -13,7 +13,7 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
         if array_find(IGNORED_STRUCT_NAMES, structName) {
             return;
         }
-        if array_find(TYPES_TO_EXPORT, structName) {
+        if array_find(STRUCTS_TO_EXPORT, structName) {
             printGreen(tprint("+ add struct: %", structName));
             table_add(*foundStructs, structName, *st);
 
@@ -65,9 +65,19 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
         } else {
             codeNode :*Code_Node= declaration.expression;
             if codeNode.location.enclosing_load != null {
-                if contains(codeNode.location.enclosing_load.fully_pathed_filename, "main_03.jai") {
-                    print("from declarations: %=%\n", codeNode.kind, codeNode.location.l0);
-                }
+                // if contains(codeNode.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
+                    // print("from declarations: %,%=%\n", codeNode.kind, codeDeclaration.expression.kind, codeNode.location.l0);
+                    if codeDeclaration.expression && codeDeclaration.expression.kind == .TYPE_INSTANTIATION {
+                        // codeTypeInst := cast(*Code_Type_Instantiation) codeDeclaration.expression;
+                        // if array_find(TYPES_TO_EXPORT, codeIdent.name) {
+                            // print("codeTypeInst.pointer_to:%\n", codeTypeInst.pointer_to);
+                            required, typeName := typeDeclarationRequired(*declaration);
+                            if required {
+                                table_add(*foundTypes, typeName, *declaration);
+                            }
+                        // }
+                    }
+                // }
                 // if codeDeclaration.expression.kind == .LITERAL {
                 //     builder:String_Builder;
                 //     location := declarationLocation_Code_Declaration(codeDeclaration);
@@ -102,29 +112,29 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
             // // }
         }
     }
-    for other: message.all {
-        codeNode :*Code_Node= other.expression;
-        if codeNode.location.enclosing_load != null {
-            if contains(codeNode.location.enclosing_load.fully_pathed_filename, "main_03.jai") {
-                print("from all: %=%\n", codeNode.kind, codeNode.location.l0);
-            }
-            // if codeDeclaration.expression.kind == .LITERAL {
-            //     builder:String_Builder;
-            //     location := declarationLocation_Code_Declaration(codeDeclaration);
-            //     locationToBuilder(*builder, location);
-            //     result := builder_to_string(*builder);
-            //     print("res:%\n", result);
-            // }
-        }
-        // subCodeNodes :[] *Code_Node= other.subexpressions;
-        // for subCodeNode: subCodeNodes {
-        //     if subCodeNode.location.enclosing_load != null {
-        //         if contains(subCodeNode.location.enclosing_load.fully_pathed_filename, "main_03.jai") {
-        //             print("from all (sub): %=%\n", subCodeNode.kind, subCodeNode.location.l0);
-        //         }
-        //     }
-        // }
-    }
+    // for other: message.all {
+    //     codeNode :*Code_Node= other.expression;
+    //     if codeNode.location.enclosing_load != null {
+    //         if contains(codeNode.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
+    //             print("from all: type=% line=%\n", codeNode.kind, codeNode.location.l0);
+    //         }
+    //         // if codeDeclaration.expression.kind == .LITERAL {
+    //         //     builder:String_Builder;
+    //         //     location := declarationLocation_Code_Declaration(codeDeclaration);
+    //         //     locationToBuilder(*builder, location);
+    //         //     result := builder_to_string(*builder);
+    //         //     print("res:%\n", result);
+    //         // }
+    //     }
+    //     // subCodeNodes :[] *Code_Node= other.subexpressions;
+    //     // for subCodeNode: subCodeNodes {
+    //     //     if subCodeNode.location.enclosing_load != null {
+    //     //         if contains(subCodeNode.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
+    //     //             print("from all (sub): %=%\n", subCodeNode.kind, subCodeNode.location.l0);
+    //     //         }
+    //     //     }
+    //     // }
+    // }
 
     // content := builder_to_string(*builder);
     // if content.count > 0 {
@@ -140,6 +150,9 @@ bindingsExportWriteFile :: (using info: *BindingsExportInfo, path: string) -> bo
 
     printBlue(tprint("----------- % exportedProcedures", exportedProcedures.count));
 
+    for foundType: foundTypes {
+        printType(*builder, foundType);
+    }
     for foundStruct: foundStructs {
         printStruct(*builder, foundStruct);
     }
@@ -198,10 +211,27 @@ printStruct :: (builder:*String_Builder, st: *Typechecked(Code_Struct)) {
     // if array_find(IGNORED_STRUCT_NAMES, structName) {
     //     return;
     // }
-    print("name: %\n", structName);
     location := declarationLocation_Code_Struct(st);
     print_to_builder(builder, "% ::", structName);
     locationToBuilder(builder, location);
     append(builder, #char "\n");
+}
+
+printType :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
+   location := declarationLocation_Any(td);
+   locationToBuilder(builder, location);
+   append(builder, #char "\n");
+}
+
+
+typeDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
+    location := declarationLocation_Any(td);
+    builder :String_Builder;
+    locationToBuilder(*builder, location);
+    content := builder_to_string(*builder);
+    firstColon := find_index_from_left(content, #char ":");
+    typeName := trim(slice(content, 0, firstColon));
+    required := array_find(TYPES_TO_EXPORT, typeName);
+    return required, typeName;
 }
 

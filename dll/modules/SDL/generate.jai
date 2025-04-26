@@ -5,8 +5,8 @@ AT_COMPILE_TIME :: true;
 
 NUM_PARALLEL_CMAKE_JOBS :: 8;
 
-// We don’t ship the source with the compiler. Download a release and update this path if you want to re-compile the library.
-SOURCE_PATH :: "src/SDL2-2.30.2";
+// We don't ship the source with the compiler. Download a release and update this path if you want to re-compile the library.
+SOURCE_PATH :: "/home/gui/work/web/github/SDL";//"src/SDL2-2.30.2";
 
 #if AT_COMPILE_TIME {
     #run,stallable {
@@ -44,9 +44,9 @@ build_sdl :: (args: [] string) -> bool {
         UNIVERSAL_DIR :: "macos";
         options := get_build_options();
         success := make_directory_if_it_does_not_exist(UNIVERSAL_DIR);
-        // "-DSDL_STATIC=OFF" so we don’t build the static library because if any program links against the static library
+        // "-DSDL_STATIC=OFF" so we don't build the static library because if any program links against the static library
         // it also needs to link against libclang_rt.osx.a to get the "__isPlatformVersionAtLeast" symbol (which is needed for @available/#available/__builtin_available checks in SDL).
-        // Xcode automatically links against libclang_rt.osx.a if a project includes any availability checks. But I don’t know any way to automatically determine the path to this library!
+        // Xcode automatically links against libclang_rt.osx.a if a project includes any availability checks. But I don't know any way to automatically determine the path to this library!
         // (On my system it currently lives in "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/lib/darwin/libclang_rt.osx.a", so it depends on clang version used by your Xcode version.)
         //  -rluba, 2024-04-19
         success &&= build_sdl_variant(args, "_x64",   .["-DSDL_STATIC=OFF", "-DCMAKE_OSX_ARCHITECTURES=x86_64", "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"]);
@@ -55,7 +55,7 @@ build_sdl :: (args: [] string) -> bool {
             // Create a universal binary out of the two arch builds:
             universal_lib_path := tprint("%/libSDL2.dylib", UNIVERSAL_DIR);
             run_or_exit("lipo", "-create", "macos_x64/lib/libSDL2.dylib", "macos_arm64/lib/libSDL2.dylib", "-output", universal_lib_path);
-            // Fix the dynamic library’s ID since we copied the symlinked short name variant. Otherwise the library still thinks it’s called "libSDL2-2.0.0.dylib" and anything you link against it will look for the versioned library name.
+            // Fix the dynamic library's ID since we copied the symlinked short name variant. Otherwise the library still thinks it's called "libSDL2-2.0.0.dylib" and anything you link against it will look for the versioned library name.
             run_or_exit("install_name_tool", "-id", "@rpath/libSDL2.dylib", universal_lib_path);
         }
     } else #if OS == .WINDOWS {
@@ -63,7 +63,7 @@ build_sdl :: (args: [] string) -> bool {
         success &&= copy_file("windows/bin/SDL2.dll", "windows/SDL2.dll");
         success &&= copy_file("windows/lib/SDL2.lib", "windows/SDL2.lib");
     } else #if OS == .LINUX {
-        success := build_sdl_variant(args, "", .[]);
+        success := build_sdl_variant(args, "", .[""]);
         success &&= copy_file("linux/lib/libSDL2.so", "linux/libSDL2.so");
         success &&= copy_file("linux/lib/libSDL2.a",  "linux/libSDL2.a");
     }
@@ -113,6 +113,10 @@ build_sdl_variant :: (args: [] string, suffix: string, extra_config_args: [] str
     if OS == .WINDOWS {
         array_add(*config_command, tprint("-DCMAKE_CONFIGURATION_TYPES=%", build_type));
     }
+    if OS == .LINUX {
+        array_add(*config_command, "-DCMAKE_C_FLAGS=-fPIC");
+        array_add(*config_command, "-DCMAKE_CXX_FLAGS=-fPIC");
+    }
 
     run_or_exit(..config_command, working_directory = absolute_build_dir);
     log("Done configuring SDL");
@@ -135,7 +139,7 @@ build_sdl_variant :: (args: [] string, suffix: string, extra_config_args: [] str
 
 run_or_exit :: (command: .. string, working_directory := "") -> string {
     // Enable this to see the commands being executed.
-    // Might be useful if, for example, you need to compile LLVM on a platform where we don’t have a Jai compiler yet and want to do it manually.
+    // Might be useful if, for example, you need to compile LLVM on a platform where we don't have a Jai compiler yet and want to do it manually.
     // log("Executing command \"%\" in directory \"%\"\n", join(..command, separator = " "), working_directory);
 
     result, output_string, error_string := run_command(..command, working_directory = working_directory, capture_and_return_output = true, print_captured_output = true);

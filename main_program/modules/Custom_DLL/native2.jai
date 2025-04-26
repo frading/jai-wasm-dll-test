@@ -1,15 +1,16 @@
 // auto generated
-MyNode :: struct {
-    id: u8;
-}
-Truck :: struct {
-    speed: float;
+
+DRIVERS_COUNT :Type:#type u8;
+BaseNode :: struct {
+    id : u32;
+    value: float64;
     driversCount:DRIVERS_COUNT;
-}
-OtherStruct :: struct {
-    id: u8;
-    t: Truck;
+    count:DRIVERS_COUNT = INIT_DRIVERS_COUNT;
 }
 
-compute :: (node: MyNode, other: OtherStruct) -> DRIVERS_COUNT  #foreign;
+openWindow :: ()  #foreign;
+
+computeSum :: () -> float64  #foreign;
+
+setNode :: (index:u8, node:BaseNode)  #foreign;
 // end

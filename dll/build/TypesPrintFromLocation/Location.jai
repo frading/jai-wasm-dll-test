@@ -128,39 +128,38 @@ locationToCustomLocation :: (location:$T)->CustomLocation {
 }
 
 declarationLocation_Code_Struct :: (node:*Typechecked(Code_Struct))->CustomLocation {
-    location := node.expression.location;
-    subexpressions := node.subexpressions;
-    maxL1 :s32= location.l1;
-    for subexpression: subexpressions {
-        if subexpression.location.l1 > maxL1 {
-            maxL1 = subexpression.location.l1;
-        }
-    }
-    maxC1 :s32= 0;
-    for subexpression: subexpressions {
-        if subexpression.location.l1 == maxL1 {
-            if subexpression.location.c1 > maxC1 {
-                maxC1 = subexpression.location.c1;
-            }
-        }
-    }
+    return declarationLocation_Any(node);
+    // location := node.expression.location;
+    // subexpressions := node.subexpressions;
+    // maxL1 :s32= location.l1;
+    // for subexpression: subexpressions {
+    //     if subexpression.location.l1 > maxL1 {
+    //         maxL1 = subexpression.location.l1;
+    //     }
+    // }
+    // maxC1 :s32= 0;
+    // for subexpression: subexpressions {
+    //     if subexpression.location.l1 == maxL1 {
+    //         if subexpression.location.c1 > maxC1 {
+    //             maxC1 = subexpression.location.c1;
+    //         }
+    //     }
+    // }
 
-    return CustomLocation.{
-        enclosing_load = location.enclosing_load,
-        l0 = location.l0,
-        c0 = location.c0,
-        l1 = maxL1,
-        c1 = maxC1
-    };
+    // return CustomLocation.{
+    //     enclosing_load = location.enclosing_load,
+    //     l0 = location.l0,
+    //     c0 = location.c0,
+    //     l1 = maxL1,
+    //     c1 = maxC1
+    // };
 }
 
 declarationLocation_Any :: (node:*Typechecked($T))->CustomLocation {
     location := node.expression.location;
     subexpressions := node.subexpressions;
-    print("subexpressions:% from %\n", subexpressions.count, node.expression.kind);
     maxL1 :s32= location.l1;
-    for subexpression, i: subexpressions {
-        print("%:%\n", i, subexpression.kind);
+    for subexpression: subexpressions {
         if subexpression.location.l1 > maxL1 {
             maxL1 = subexpression.location.l1;
         }
@@ -181,4 +180,30 @@ declarationLocation_Any :: (node:*Typechecked($T))->CustomLocation {
         l1 = maxL1,
         c1 = maxC1
     };
+    // location := node.expression.location;
+    // subexpressions := node.subexpressions;
+    // print("subexpressions:% from %\n", subexpressions.count, node.expression.kind);
+    // maxL1 :s32= location.l1;
+    // for subexpression, i: subexpressions {
+    //     print("%:%\n", i, subexpression.kind);
+    //     if subexpression.location.l1 > maxL1 {
+    //         maxL1 = subexpression.location.l1;
+    //     }
+    // }
+    // maxC1 :s32= 0;
+    // for subexpression: subexpressions {
+    //     if subexpression.location.l1 == maxL1 {
+    //         if subexpression.location.c1 > maxC1 {
+    //             maxC1 = subexpression.location.c1;
+    //         }
+    //     }
+    // }
+
+    // return CustomLocation.{
+    //     enclosing_load = location.enclosing_load,
+    //     l0 = location.l0,
+    //     c0 = location.c0,
+    //     l1 = maxL1,
+    //     c1 = maxC1
+    // };
 }

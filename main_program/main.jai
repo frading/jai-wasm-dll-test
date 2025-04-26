@@ -6,6 +6,7 @@ main :: () {
     print("compute:%\n", computeSum());
     print("OK\n");
 
+    openWindow();
 }
 
 #scope_file
