@@ -1,20 +1,9 @@
-BaseNode :: struct {
-    id : u32;
-    value: float64;
-}
+#import "Basic";
+#import "SDL";
+#import "String";
 
-#program_export
-setNode :: (index:u8, node:BaseNode) {
+main :: () {
 
-}
-
-#program_export
-computeSum :: () -> float64 {
-    return 17;
-}
-
-#program_export
-openWindow :: () {
     SDL_Init(SDL_INIT_VIDEO);
 
     // Create an application window with the following settings:
@@ -50,7 +39,3 @@ openWindow :: () {
     // Clean up
     SDL_Quit();
 }
-
-#import "Basic";
-#import "SDL";
-#import "String";
