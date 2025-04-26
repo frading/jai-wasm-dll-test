@@ -157,7 +157,7 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
             }
             case .TYPECHECKED; {
                 mt := cast(*Message_Typechecked) message;
-                bindingsExportHandleMessage(*bindingsInfo, mt);
+                // bindingsExportHandleMessage(*bindingsInfo, mt);
             //     // print("*** TYPECHECKED\n");
             //     // if typechecked {
             //         mt = cast(*Message_Typechecked) message;
@@ -173,11 +173,11 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
     }
     compiler_end_intercept(w);
 
-    success = bindingsExportWriteFile(*bindingsInfo, tprint("%/../main_program/modules/Custom_DLL/native2.jai", #filepath));
-    if !success {
-        compiler_report("Couldn’t generate C header file");
-        return;
-    }
+    // success = bindingsExportWriteFile(*bindingsInfo, tprint("%/../main_program/modules/Custom_DLL/native2.jai", #filepath));
+    // if !success {
+    //     compiler_report("Couldn’t generate C header file");
+    //     return;
+    // }
 
     if wasm && (output_type==.DYNAMIC_LIBRARY || output_type==.STATIC_LIBRARY) {
         src := tprint("%/%.wasm", options.output_path,  options.output_executable_name);
