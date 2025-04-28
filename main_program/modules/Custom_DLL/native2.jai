@@ -21,15 +21,21 @@ RecyclingMethod :: enum u8 {
 	NEVER;
 }
 
+EditorOnAfterDeleteCallback :Type: #type (nodesScene: *NodesScene);
+
 WorldObjectUniqueId :Type:#type s64;
 
 DRIVERS_COUNT :Type:#type u8;
+
+DEFAULT_EDITOR_ON_AFTER_DELETE :EditorOnAfterDeleteCallback: (nodesScene: *NodesScene) {}
 BaseNode :: struct {
     id : u32;
     value: float64;
     driversCount:DRIVERS_COUNT;
     count:DRIVERS_COUNT = INIT_DRIVERS_COUNT;
     wId:WorldObjectUniqueId;
+}
+NodesScene :: struct {
 }
 GeoNode :: struct (
 	geoTypeName:string,

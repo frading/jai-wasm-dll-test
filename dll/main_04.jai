@@ -34,6 +34,8 @@ NodeContext :: enum u8 {
 	RENDER	:: 9;
 };
 
+
+
 GeoNode :: struct (
 	geoTypeName:string,
 	GeoNodeType: Type,
@@ -55,6 +57,11 @@ GeoNode :: struct (
 		async=geoAsync,
 	);
 };
+
+NodesScene :: struct {
+};
+EditorOnAfterDeleteCallback :Type: #type (nodesScene: *NodesScene);
+DEFAULT_EDITOR_ON_AFTER_DELETE :EditorOnAfterDeleteCallback: (nodesScene: *NodesScene) {}
 
 #program_export
 setNode :: (index:u8, node:BaseNode) {

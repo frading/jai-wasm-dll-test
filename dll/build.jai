@@ -208,6 +208,7 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
 #import "File_Utilities";
 #import "Hash_Table";
 #import "Process";
+#import "Program_Print";
 #import "String";
 #import "Text_File_Handler";
 

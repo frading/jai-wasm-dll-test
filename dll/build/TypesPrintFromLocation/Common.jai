@@ -1,9 +1,10 @@
 BindingsExportInfo :: struct {
-   exportedProcedures:  [..] *Typechecked(Code_Declaration);
-   foundStructs: Table(string, *Typechecked(Code_Struct));
-   foundConstants: Table(string, *Typechecked(Code_Declaration));
-   foundEnums: Table(string, *Typechecked(Code_Declaration));
-   foundTypes: Table(string, *Typechecked(Code_Declaration));
+    exportedProcedures:  [..] *Typechecked(Code_Declaration);
+    foundConstants: Table(string, *Typechecked(Code_Declaration));
+    foundEnums: Table(string, *Typechecked(Code_Declaration));
+    foundProcedures: Table(string, *Typechecked(Code_Declaration));
+    foundTypes: Table(string, *Typechecked(Code_Declaration));
+    foundStructs: Table(string, *Typechecked(Code_Struct));
 }
 
 // same as Location inside Compiler.jai

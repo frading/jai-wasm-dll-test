@@ -35,32 +35,32 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
                 printGreen(tprint("+ add procedure: %", procedureName));
                 array_add(*exportedProcedures, *declaration);
 
-                if procedureName == "compute" {
-                    codeDeclaration :*Code_Declaration= declaration.expression;
-                    procedureName := codeDeclaration.program_export_name;
-                    codeNode :*Code_Node= codeDeclaration.expression;
-                    assert(codeNode.kind == .PROCEDURE_HEADER, "codeNode should .kind == .PROCEDURE_HEADER");
-                    codeProcedureHeader := cast(*Code_Procedure_Header)codeNode;
-                    returns:[]*Code_Declaration = codeProcedureHeader.returns;
-                    print("returns:%\n", returns);
-                    for ret,i:returns {
-                        print("%:%,%.\n", i, ret.kind, ret.name);
-                        if ret.type_inst {
-                            print("- type_inst:%\n", ret.type_inst.kind);
-                            print("- type_inst.result:%\n", ret.type_inst.result.type);
-                            if ret.type_inst.result.type == {
-                                case .VARIANT; {
-                                    typeInfoVariant := cast(*Type_Info_Variant)ret.type_inst.result;
-                                    print("typeInfoVariant:%\n", typeInfoVariant.name);
-                                }
-                            }
-                            // print("- type_inst.type_valued_expression:%\n", ret.type_inst.type_valued_expression.location.l0);
-                        }
-                        if ret.expression {
-                            print("- expression:%\n", ret.expression.kind);
-                        }
-                    }
-                }
+                // if procedureName == "compute" {
+                //     codeDeclaration :*Code_Declaration= declaration.expression;
+                //     procedureName := codeDeclaration.program_export_name;
+                //     codeNode :*Code_Node= codeDeclaration.expression;
+                //     assert(codeNode.kind == .PROCEDURE_HEADER, "codeNode should .kind == .PROCEDURE_HEADER");
+                //     codeProcedureHeader := cast(*Code_Procedure_Header)codeNode;
+                //     returns:[]*Code_Declaration = codeProcedureHeader.returns;
+                //     print("returns:%\n", returns);
+                //     for ret,i:returns {
+                //         print("%:%,%.\n", i, ret.kind, ret.name);
+                //         if ret.type_inst {
+                //             print("- type_inst:%\n", ret.type_inst.kind);
+                //             print("- type_inst.result:%\n", ret.type_inst.result.type);
+                //             if ret.type_inst.result.type == {
+                //                 case .VARIANT; {
+                //                     typeInfoVariant := cast(*Type_Info_Variant)ret.type_inst.result;
+                //                     print("typeInfoVariant:%\n", typeInfoVariant.name);
+                //                 }
+                //             }
+                //             // print("- type_inst.type_valued_expression:%\n", ret.type_inst.type_valued_expression.location.l0);
+                //         }
+                //         if ret.expression {
+                //             print("- expression:%\n", ret.expression.kind);
+                //         }
+                //     }
+                // }
             }
         } else {
             // codeDeclaration :*Code_Node= declaration.expression;
@@ -80,6 +80,12 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
                                 required, typeName := typeDeclarationRequired(*declaration);
                                 if required {
                                     table_add(*foundConstants, typeName, *declaration);
+                                }
+                            }
+                            case .PROCEDURE_HEADER; {
+                                required, typeName := procedureDeclarationRequired(*declaration);
+                                if required {
+                                    table_add(*foundProcedures, typeName, *declaration);
                                 }
                             }
                             case .TYPE_INSTANTIATION; {
@@ -176,6 +182,9 @@ bindingsExportWriteFile :: (using info: *BindingsExportInfo, path: string) -> bo
     for foundType: foundTypes {
         printType(*builder, foundType);
     }
+    for foundProcedure: foundProcedures {
+        printProcedure(*builder, foundProcedure);
+    }
     for foundStruct: foundStructs {
         printStruct(*builder, foundStruct);
     }
@@ -246,6 +255,14 @@ printEnum :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
     append(builder, #char "\n");
 }
 
+printProcedure :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
+    location := declarationLocation_Any(td);
+    locationToBuilder(builder, location);
+    append(builder, "{}");
+    // print_declaration(builder, td.expression);
+    append(builder, #char "\n");
+}
+
 printStruct :: (builder:*String_Builder, st: *Typechecked(Code_Struct)) {
     structName := st.expression.defined_type.name;
     // if array_find(IGNORED_STRUCT_NAMES, structName) {
@@ -272,6 +289,13 @@ enumDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool,
 	required, typeName := _declarationRequired(td, ENUMS_TO_EXPORT);
 	return required, typeName;
 }
+procedureDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
+	// codeDeclaration :*Code_Declaration= td.expression;
+    // codeNode :*Code_Node= codeDeclaration.expression;
+    required, typeName := _declarationRequired(td, CONSTANTS_TO_EXPORT);
+	return required, typeName;
+}
+
 typeDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
 	required, typeName := _declarationRequired(td, TYPES_TO_EXPORT);
 	return required, typeName;
