@@ -1,4 +1,4 @@
-FILE_NAME::"main_04.jai";
+FILE_NAME::"main_05.jai";
 
 bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Message_Typechecked){
 
@@ -35,32 +35,6 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
                 printGreen(tprint("+ add procedure: %", procedureName));
                 array_add(*exportedProcedures, *declaration);
 
-                // if procedureName == "compute" {
-                //     codeDeclaration :*Code_Declaration= declaration.expression;
-                //     procedureName := codeDeclaration.program_export_name;
-                //     codeNode :*Code_Node= codeDeclaration.expression;
-                //     assert(codeNode.kind == .PROCEDURE_HEADER, "codeNode should .kind == .PROCEDURE_HEADER");
-                //     codeProcedureHeader := cast(*Code_Procedure_Header)codeNode;
-                //     returns:[]*Code_Declaration = codeProcedureHeader.returns;
-                //     print("returns:%\n", returns);
-                //     for ret,i:returns {
-                //         print("%:%,%.\n", i, ret.kind, ret.name);
-                //         if ret.type_inst {
-                //             print("- type_inst:%\n", ret.type_inst.kind);
-                //             print("- type_inst.result:%\n", ret.type_inst.result.type);
-                //             if ret.type_inst.result.type == {
-                //                 case .VARIANT; {
-                //                     typeInfoVariant := cast(*Type_Info_Variant)ret.type_inst.result;
-                //                     print("typeInfoVariant:%\n", typeInfoVariant.name);
-                //                 }
-                //             }
-                //             // print("- type_inst.type_valued_expression:%\n", ret.type_inst.type_valued_expression.location.l0);
-                //         }
-                //         if ret.expression {
-                //             print("- expression:%\n", ret.expression.kind);
-                //         }
-                //     }
-                // }
             }
         } else {
             // codeDeclaration :*Code_Node= declaration.expression;
@@ -76,8 +50,15 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
                                     table_add(*foundEnums, typeName, *declaration);
                                 }
                             }
+                            case .IDENT; {
+                                required, typeName := constantDeclarationRequired(*declaration);
+                                print("required:%, typeName:%\n", required, typeName);
+                                if required {
+                                    table_add(*foundConstants, typeName, *declaration);
+                                }
+                            }
                             case .LITERAL; {
-                                required, typeName := typeDeclarationRequired(*declaration);
+                                required, typeName := constantDeclarationRequired(*declaration);
                                 if required {
                                     table_add(*foundConstants, typeName, *declaration);
                                 }
@@ -135,7 +116,7 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
             // // }
         }
     }
-    // for other: message.all {
+    // for other: message.others {
     //     codeNode :*Code_Node= other.expression;
     //     if codeNode.location.enclosing_load != null {
     //         if contains(codeNode.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
@@ -241,6 +222,8 @@ bindingsExportWriteFile :: (using info: *BindingsExportInfo, path: string) -> bo
 printConstant :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
    location := declarationLocation_Any(td);
    locationToBuilder(builder, location);
+    // print_expression(builder, td.expression);
+    // append(builder, #char ";");
    append(builder, #char "\n");
 }
 

@@ -34,6 +34,9 @@ NodeContext :: enum u8 {
 	RENDER	:: 9;
 };
 
+SUPER :u8: 18;
+
+SUPER2 :: SUPER;
 
 
 GeoNode :: struct (
