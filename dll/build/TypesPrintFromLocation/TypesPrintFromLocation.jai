@@ -245,18 +245,27 @@ printConstant :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
 }
 
 printEnum :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
-    print("---- printEnum:%,%\n", td.expression, td.subexpressions.count );
-    for subexpression:td.subexpressions {
-        print("subexpression:%\n", subexpression.kind);
-    }
+    // print("---- printEnum:%,%\n", td.expression, td.subexpressions.count );
+    // for subexpression:td.subexpressions {
+    //     print("subexpression:%\n", subexpression.kind);
+    // }
     location := declarationLocation_Enum(td);
-    print("enum:%,%\n", location.l0, location.l1);
+    // print("enum:%,%\n", location.l0, location.l1);
     locationToBuilder(builder, location);
     append(builder, #char "\n");
 }
 
 printProcedure :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
-    location := declarationLocation_Any(td);
+    codeDeclaration :*Code_Declaration= td.expression;
+    codeNode :*Code_Node= codeDeclaration.expression;
+    assert(codeNode.kind==.PROCEDURE_HEADER, "not a header");
+
+    procHeader := cast(*Code_Procedure_Header) codeNode;
+    body_or_null := procHeader.body_or_null;
+
+    locationProcHeader := declarationLocation_Any(td);
+    locationBody := locationToCustomLocation(body_or_null.location);
+    location := locationsExpand(locationProcHeader, locationBody);
     locationToBuilder(builder, location);
     append(builder, "{}");
     // print_declaration(builder, td.expression);
