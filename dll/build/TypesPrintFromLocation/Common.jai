@@ -1,6 +1,8 @@
 BindingsExportInfo :: struct {
    exportedProcedures:  [..] *Typechecked(Code_Declaration);
    foundStructs: Table(string, *Typechecked(Code_Struct));
+   foundConstants: Table(string, *Typechecked(Code_Declaration));
+   foundEnums: Table(string, *Typechecked(Code_Declaration));
    foundTypes: Table(string, *Typechecked(Code_Declaration));
 }
 

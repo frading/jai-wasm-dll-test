@@ -205,10 +205,11 @@ build_lib :: (wasm:bool, output_type:type_of(Build_Options.output_type)) {
 #import "Basic";
 #import "Compiler";
 #import "File";
-#import "Process";
-#import "Program_Print";
-#import "String";
+#import "File_Utilities";
 #import "Hash_Table";
+#import "Process";
+#import "String";
+#import "Text_File_Handler";
 
 #load "build/Print.jai";
 // #load "build/TypesPrintFromTypeInfo/_index.jai";

@@ -155,6 +155,15 @@ declarationLocation_Code_Struct :: (node:*Typechecked(Code_Struct))->CustomLocat
     // };
 }
 
+declarationLocation_Enum :: (node:*Typechecked($T))->CustomLocation {
+    codeDeclaration :*Code_Declaration= node.expression;
+    assert(codeDeclaration.expression.kind == .ENUM, tprint("not an enum? (%)", codeDeclaration.expression.kind));
+    codeEnum := cast(*Code_Enum)codeDeclaration.expression;
+    locDeclaration := declarationLocation_Any(node);
+    locBlock := locationToCustomLocation(codeEnum.block);
+    return locationsExpand(locDeclaration, locBlock);
+}
+
 declarationLocation_Any :: (node:*Typechecked($T))->CustomLocation {
     location := node.expression.location;
     subexpressions := node.subexpressions;

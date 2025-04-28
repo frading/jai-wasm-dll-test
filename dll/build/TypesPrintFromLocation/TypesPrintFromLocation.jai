@@ -63,21 +63,38 @@ bindingsExportHandleMessage :: (using info: *BindingsExportInfo, message: *Messa
                 }
             }
         } else {
-            codeNode :*Code_Node= declaration.expression;
-            if codeNode.location.enclosing_load != null {
-                // if contains(codeNode.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
-                    // print("from declarations: %,%=%\n", codeNode.kind, codeDeclaration.expression.kind, codeNode.location.l0);
-                    if codeDeclaration.expression && codeDeclaration.expression.kind == .TYPE_INSTANTIATION {
-                        // codeTypeInst := cast(*Code_Type_Instantiation) codeDeclaration.expression;
-                        // if array_find(TYPES_TO_EXPORT, codeIdent.name) {
-                            // print("codeTypeInst.pointer_to:%\n", codeTypeInst.pointer_to);
-                            required, typeName := typeDeclarationRequired(*declaration);
-                            if required {
-                                table_add(*foundTypes, typeName, *declaration);
+            // codeDeclaration :*Code_Node= declaration.expression;
+            if codeDeclaration.location.enclosing_load != null {
+                if contains(codeDeclaration.location.enclosing_load.fully_pathed_filename, FILE_NAME) {
+                    if codeDeclaration.expression {
+                        print("from declarations: %,%=%\n", codeDeclaration.kind, codeDeclaration.expression.kind, codeDeclaration.location.l0);
+                        if codeDeclaration.expression.kind == {
+                            case .ENUM; {
+                                required, typeName := enumDeclarationRequired(*declaration);
+                                print("ENUM:%,%\n", required, typeName);
+                                if required {
+                                    table_add(*foundEnums, typeName, *declaration);
+                                }
                             }
-                        // }
+                            case .LITERAL; {
+                                required, typeName := typeDeclarationRequired(*declaration);
+                                if required {
+                                    table_add(*foundConstants, typeName, *declaration);
+                                }
+                            }
+                            case .TYPE_INSTANTIATION; {
+                                // codeTypeInst := cast(*Code_Type_Instantiation) codeDeclaration.expression;
+                                // if array_find(TYPES_TO_EXPORT, codeIdent.name) {
+                                    // print("codeTypeInst.pointer_to:%\n", codeTypeInst.pointer_to);
+                                    required, typeName := typeDeclarationRequired(*declaration);
+                                    if required {
+                                        table_add(*foundTypes, typeName, *declaration);
+                                    }
+                                // }
+                            }
+                        }
                     }
-                // }
+                }
                 // if codeDeclaration.expression.kind == .LITERAL {
                 //     builder:String_Builder;
                 //     location := declarationLocation_Code_Declaration(codeDeclaration);
@@ -150,6 +167,12 @@ bindingsExportWriteFile :: (using info: *BindingsExportInfo, path: string) -> bo
 
     printBlue(tprint("----------- % exportedProcedures", exportedProcedures.count));
 
+    for foundConstant: foundConstants {
+        printConstant(*builder, foundConstant);
+    }
+    for foundEnum: foundEnums {
+        printEnum(*builder, foundEnum);
+    }
     for foundType: foundTypes {
         printType(*builder, foundType);
     }
@@ -206,6 +229,23 @@ bindingsExportWriteFile :: (using info: *BindingsExportInfo, path: string) -> bo
 #scope_file
 
 
+printConstant :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
+   location := declarationLocation_Any(td);
+   locationToBuilder(builder, location);
+   append(builder, #char "\n");
+}
+
+printEnum :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
+    print("---- printEnum:%,%\n", td.expression, td.subexpressions.count );
+    for subexpression:td.subexpressions {
+        print("subexpression:%\n", subexpression.kind);
+    }
+    location := declarationLocation_Enum(td);
+    print("enum:%,%\n", location.l0, location.l1);
+    locationToBuilder(builder, location);
+    append(builder, #char "\n");
+}
+
 printStruct :: (builder:*String_Builder, st: *Typechecked(Code_Struct)) {
     structName := st.expression.defined_type.name;
     // if array_find(IGNORED_STRUCT_NAMES, structName) {
@@ -224,14 +264,45 @@ printType :: (builder:*String_Builder, td: *Typechecked(Code_Declaration)) {
 }
 
 
+constantDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
+	required, typeName := _declarationRequired(td, CONSTANTS_TO_EXPORT);
+	return required, typeName;
+}
+enumDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
+	required, typeName := _declarationRequired(td, ENUMS_TO_EXPORT);
+	return required, typeName;
+}
 typeDeclarationRequired :: (td: *Typechecked(Code_Declaration))->(required:bool, typeName:string) {
-    location := declarationLocation_Any(td);
-    builder :String_Builder;
-    locationToBuilder(*builder, location);
-    content := builder_to_string(*builder);
-    firstColon := find_index_from_left(content, #char ":");
-    typeName := trim(slice(content, 0, firstColon));
-    required := array_find(TYPES_TO_EXPORT, typeName);
-    return required, typeName;
+	required, typeName := _declarationRequired(td, TYPES_TO_EXPORT);
+	return required, typeName;
+}
+
+MODULES::"modules";
+_declarationRequired :: (td: *Typechecked(Code_Declaration), requiredNames:[]string)->(required:bool, typeName:string) {
+	if (td.expression.flags & .SCOPE_FILE) != 0 {
+		return false, "";
+	}
+	
+	locationCore := td.expression.location;
+	if locationCore.enclosing_load == null {
+		return false, "";
+	}
+	filePathCore := parse_path(locationCore.enclosing_load.fully_pathed_filename);
+	for word : filePathCore.words {
+		if word == MODULES {
+			return false, "";
+		}
+	}
+
+	location := declarationLocation_Any(td);
+	builder :String_Builder;
+	locationToBuilder(*builder, location);
+	content := builder_to_string(*builder);
+	// print("file:%,l0=%\n", locationCore.enclosing_load.fully_pathed_filename, locationCore.l0);
+	// print("content:%.\n", content);
+	firstColon := find_index_from_left(content, #char ":");
+	typeName := trim(slice(content, 0, firstColon));
+	required := array_find(requiredNames, typeName);
+	return required, typeName;
 }
 
